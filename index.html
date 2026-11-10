@@ -27,12 +27,25 @@
       border-radius: 8px;
       margin-top: 20px;
     }
+    #message {
+      color: #0b8043;
+      font-size: 18px;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
   <h1>Welcome to DukaanAI</h1>
   <p>Aapke shehar ki har dukaan, ab ek jagah.</p>
-  <button>Dukaan dhundo</button>
+  <button onclick="showMessage()">Dukaan dhundo</button>
+  <p id="message"></p>
+
+  <script>
+    function showMessage() {
+      document.getElementById("message").innerText =
+        "Jehanabad ki dukaanein jaldi aa rahi hain!";
+    }
+  </script>
 </body>
 </html>
 
