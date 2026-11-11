@@ -14,13 +14,17 @@
     .box h3 { margin: 0 0 10px; }
     label { font-size: 14px; font-weight: bold; }
     input { display: block; width: 100%; padding: 12px; margin: 6px 0 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; }
+    input[type=file] { font-size: 14px; background: #fafafa; }
     .btn { display: block; width: 100%; padding: 13px; border: none; border-radius: 28px; background: #f57c00; color: white; font-size: 16px; font-weight: bold; }
+    .btn:disabled { background: #ccc; }
     .banner { background: linear-gradient(135deg, #f57c00, #ffb74d); color: white; margin: 14px 12px; padding: 24px 16px; border-radius: 14px; }
     .banner .small { font-size: 13px; opacity: 0.9; }
     .banner .name { font-size: 24px; font-weight: bold; margin-top: 4px; }
     .item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 15px; }
     .item:last-child { border-bottom: none; }
+    .item .left { display: flex; align-items: center; gap: 10px; }
     .item .right { display: flex; align-items: center; gap: 10px; }
+    .thumb { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 22px; }
     .del { background: #ffebee; color: #c62828; border: none; border-radius: 16px; padding: 6px 12px; font-size: 13px; }
     #msg { margin: 10px 12px; padding: 10px; border-radius: 10px; font-size: 14px; text-align: center; display: none; }
     .note { font-size: 12px; color: #666; text-align: center; margin: 10px 12px 24px; }
@@ -52,7 +56,9 @@
     <input id="itemName" type="text" placeholder="Jaise: Atta 5kg">
     <label>Price (₹)</label>
     <input id="itemPrice" type="number" placeholder="Jaise: 220">
-    <button class="btn" onclick="addItem()">+ Item Add karo</button>
+    <label>Item ki photo (zaruri nahi)</label>
+    <input id="itemPhoto" type="file" accept="image/*">
+    <button id="addBtn" class="btn" onclick="addItem()">+ Item Add karo</button>
   </div>
 
   <div class="box">
@@ -60,22 +66,22 @@
     <div id="list"></div>
   </div>
 
-  <div class="note">Items ab online database mein save hote hain.</div>
+  <div class="note">Items aur photos ab online save hote hain.</div>
 
   <script>
     // Supabase ki jaankari (publishable key website ke code mein rakhna safe hai)
     var SUPABASE_URL = 'https://fbfubeqrnrjyhzbunwif.supabase.co';
     var SUPABASE_KEY = 'sb_publishable_T4K1yk-9-TA5nz62K8RFnw_7KzciLCt';
     var TABLE_URL = SUPABASE_URL + '/rest/v1/shop_items';
+    var PHOTO_UPLOAD_URL = SUPABASE_URL + '/storage/v1/object/item-images/';
+    var PHOTO_PUBLIC_URL = SUPABASE_URL + '/storage/v1/object/public/item-images/';
 
     var shopName = '';
 
-    // Supabase ko bhejne wale headers
     function makeHeaders() {
       return { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' };
     }
 
-    // Chhota sa message dikhao (jaise error ya success)
     function showMsg(text, isError) {
       var m = document.getElementById('msg');
       m.textContent = text;
@@ -85,21 +91,14 @@
       setTimeout(function () { m.style.display = 'none'; }, 4000);
     }
 
-    // Phone mein se dukaan ka naam padho (purane version ka naam bhi dekho)
     function loadShopName() {
       try {
         var n = localStorage.getItem('dukaanai_shop_name');
         if (n) { return n; }
-        var old = localStorage.getItem('dukaanai_shop');
-        if (old) {
-          var o = JSON.parse(old);
-          if (o && o.name) { return o.name; }
-        }
       } catch (e) {}
       return '';
     }
 
-    // Dukaan ka naam save karo
     function saveShop() {
       var n = document.getElementById('shopName').value.trim();
       if (n === '') {
@@ -113,7 +112,41 @@
       loadItems();
     }
 
-    // Database se is dukaan ke items mangao
+    // Photo ko chhota karo (500 px tak) taaki data aur jagah bache
+    function resizeImage(file, maxSize) {
+      return new Promise(function (resolve, reject) {
+        var img = new Image();
+        var reader = new FileReader();
+        reader.onload = function (e) { img.src = e.target.result; };
+        reader.onerror = reject;
+        img.onload = function () {
+          var scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+          var c = document.createElement('canvas');
+          c.width = Math.round(img.width * scale);
+          c.height = Math.round(img.height * scale);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          c.toBlob(function (blob) {
+            if (blob) { resolve(blob); } else { reject(new Error('blob')); }
+          }, 'image/jpeg', 0.7);
+        };
+        img.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Photo ko Supabase Storage mein daalo, aur uska link wapas do
+    async function uploadPhoto(file) {
+      var blob = await resizeImage(file, 500);
+      var fileName = Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.jpg';
+      var res = await fetch(PHOTO_UPLOAD_URL + fileName, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'image/jpeg' },
+        body: blob
+      });
+      if (!res.ok) { throw new Error('Photo status ' + res.status); }
+      return PHOTO_PUBLIC_URL + fileName;
+    }
+
     async function loadItems() {
       var list = document.getElementById('list');
       if (shopName === '') {
@@ -123,7 +156,7 @@
       list.textContent = 'Load ho raha hai...';
       try {
         var url = TABLE_URL + '?shop_name=eq.' + encodeURIComponent(shopName) +
-                  '&select=id,item_name,price&order=created_at.asc';
+                  '&select=id,item_name,price,image_url&order=created_at.asc';
         var res = await fetch(url, { headers: makeHeaders() });
         if (!res.ok) { throw new Error('Status ' + res.status); }
         var items = await res.json();
@@ -134,10 +167,12 @@
       }
     }
 
-    // Naya item database mein daalo
     async function addItem() {
       var n = document.getElementById('itemName').value.trim();
       var p = document.getElementById('itemPrice').value.trim();
+      var fileInput = document.getElementById('itemPhoto');
+      var btn = document.getElementById('addBtn');
+
       if (shopName === '') {
         showMsg('Pehle dukaan ka naam save karo', true);
         return;
@@ -146,23 +181,41 @@
         showMsg('Item ka naam aur price dono likho', true);
         return;
       }
+
+      btn.disabled = true;
+      btn.textContent = 'Ruko, add ho raha hai...';
+
       try {
+        var imageUrl = null;
+        if (fileInput.files.length > 0) {
+          imageUrl = await uploadPhoto(fileInput.files[0]);
+        }
+
         var res = await fetch(TABLE_URL, {
           method: 'POST',
           headers: makeHeaders(),
-          body: JSON.stringify({ shop_name: shopName, item_name: n, price: Number(p) })
+          body: JSON.stringify({
+            shop_name: shopName,
+            item_name: n,
+            price: Number(p),
+            image_url: imageUrl
+          })
         });
         if (!res.ok) { throw new Error('Status ' + res.status); }
+
         document.getElementById('itemName').value = '';
         document.getElementById('itemPrice').value = '';
+        fileInput.value = '';
         showMsg('Item add ho gaya', false);
         loadItems();
       } catch (e) {
         showMsg('Item add nahi hua. Dobara try karo.', true);
       }
+
+      btn.disabled = false;
+      btn.textContent = '+ Item Add karo';
     }
 
-    // Item hatao
     async function removeItem(id) {
       try {
         var res = await fetch(TABLE_URL + '?id=eq.' + id, {
@@ -176,7 +229,6 @@
       }
     }
 
-    // Screen par items dikhao
     function render(items) {
       var list = document.getElementById('list');
       list.innerHTML = '';
@@ -190,34 +242,4 @@
         var row = document.createElement('div');
         row.className = 'item';
 
-        var nameSpan = document.createElement('span');
-        nameSpan.textContent = item.item_name;
-
-        var right = document.createElement('div');
-        right.className = 'right';
-
-        var priceSpan = document.createElement('span');
-        priceSpan.textContent = '₹' + item.price;
-
-        var delBtn = document.createElement('button');
-        delBtn.className = 'del';
-        delBtn.textContent = 'Hatao';
-        delBtn.onclick = function () { removeItem(item.id); };
-
-        right.appendChild(priceSpan);
-        right.appendChild(delBtn);
-        row.appendChild(nameSpan);
-        row.appendChild(right);
-        list.appendChild(row);
-      });
-    }
-
-    // Page khulte hi naam aur items dikhao
-    shopName = loadShopName();
-    document.getElementById('shopName').value = shopName;
-    document.getElementById('bannerName').textContent = shopName || 'Dukaan ka naam likho';
-    loadItems();
-  </script>
-
-</body>
-</html>
+        var left = document.cre
