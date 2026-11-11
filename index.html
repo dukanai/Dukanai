@@ -1,99 +1,46 @@
-<!DOCTYPE html>
-<html lang="hi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DukaanAI</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: Arial, sans-serif; background: linear-gradient(#ede7f6, #ffffff); color: #1a1a4b; text-align: center; min-height: 100vh; }
-    .screen { padding: 16px; min-height: 100vh; }
-    .logo { font-size: 34px; font-weight: bold; margin-top: 10px; }
-    .logo span { color: #5b2be0; }
-    .tagline { font-size: 14px; margin-bottom: 20px; }
+<script>
+  // Awaaz bolne wala function
+  function speakWelcome() {
+    if (!('speechSynthesis' in window)) { return; }
+    var synth = window.speechSynthesis;
+    var msg = new SpeechSynthesisUtterance('Hello! Welcome to Dukaan A I!');
 
-    /* Pehla screen: Welcome */
-    #splash { display: block; }
-    .big-pic { font-size: 110px; margin: 30px 0 10px; }
-    .headline { font-size: 28px; font-weight: bold; line-height: 1.3; }
-    .headline span { color: #5b2be0; }
-    .sub { font-size: 15px; margin: 12px 0 20px; }
-    .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 26px; }
-    .chip { background: #ede7f6; border-radius: 20px; padding: 8px 12px; font-size: 13px; }
-    .start-btn { display: block; width: 100%; padding: 16px; border: none; border-radius: 30px; background: #5b2be0; color: white; font-size: 18px; font-weight: bold; }
+    // Phone ki English voice dhundo (pehle Indian English, nahi mili to koi bhi English)
+    var voices = synth.getVoices();
+    var voice = null;
+    for (var i = 0; i < voices.length; i++) {
+      if (voices[i].lang === 'en-IN' || voices[i].lang === 'en_IN') { voice = voices[i]; break; }
+    }
+    if (!voice) {
+      for (var j = 0; j < voices.length; j++) {
+        if (voices[j].lang && voices[j].lang.toLowerCase().indexOf('en') === 0) { voice = voices[j]; break; }
+      }
+    }
+    if (voice) {
+      msg.voice = voice;
+      msg.lang = voice.lang;
+    } else {
+      msg.lang = 'en-US';
+    }
 
-    /* Dusra screen: Aap kaun ho */
-    #roles { display: none; }
-    h2 { margin: 10px 0 4px; }
-    .cards { display: flex; gap: 10px; margin-top: 16px; }
-    .card { flex: 1; border-radius: 16px; padding: 14px 8px; background: white; }
-    .card.customer { border: 2px solid #b39ddb; }
-    .card.shop { border: 2px solid #ffcc80; background: #fff8ee; }
-    .pic { font-size: 70px; }
-    .card h3 { margin: 6px 0; font-size: 20px; }
-    .card p { font-size: 13px; min-height: 36px; }
-    .btn { display: block; padding: 12px; border-radius: 30px; color: white; text-decoration: none; font-weight: bold; }
-    .customer .btn { background: #5b2be0; }
-    .shop .btn { background: #f57c00; }
-    .why { margin-top: 18px; background: #ede7f6; border-radius: 14px; padding: 12px; }
-    .why-row { display: flex; justify-content: space-around; font-size: 12px; margin-top: 8px; }
-    .why-row div { flex: 1; }
-    .why-row b { display: block; font-size: 26px; }
-  </style>
-</head>
-<body>
+    msg.rate = 0.95;
+    msg.volume = 1;
+    synth.resume();
+    synth.speak(msg);
+  }
+  Get Started dabane par: awaaz bhi aur agla screen bhi
+  function startApp() {
+    speakWelcome();
+    document.getElementById('splash').style.display = 'none';
+    document.getElementById('roles').style.display = 'block';
+  }
+</script>
 
-  <!-- SCREEN 1: Sirf DukaanAI Welcome -->
-  <div id="splash" class="screen">
-    <div class="logo">Dukaan<span>AI</span></div>
-    <div class="tagline">Smart Dukaan. Smart Growth.</div>
-
-    <div class="big-pic">🏪</div>
-    <div class="headline">Har Dukaandaar ke liye<br><span>AI Assistant</span></div>
-    <div class="sub">Apni dukaan sambhalo, customers se judo aur business badhao, aasani se!</div>
-
-    <div class="chips">
-      <div class="chip">🤖 AI Insights</div>
-      <div class="chip">📈 Business badhao</div>
-      <div class="chip">🛵 Delivery</div>
-      <div class="chip">👥 Zyada Customers</div>
-    </div>
-
-    <button class="start-btn" onclick="startApp()">Get Started →</button>
-  </div>
-
-  <!-- SCREEN 2: Aap kaun ho -->
-  <div id="roles" class="screen">
-    <div class="logo">Dukaan<span>AI</span></div>
-    <div class="tagline">Smart Dukaan. Smart Growth.</div>
-
-    <h2>Welcome to DukaanAI!</h2>
-    <div>Batao, aap kaun ho?</div>
-
-    <div class="cards">
-      <div class="card customer">
-        <div class="pic">🛍️</div>
-        <h3>Main Customer hu</h3>
-        <p>Aasani se shopping karo, order track karo</p>
-        <a class="btn" href="customer.html">Continue →</a>
-      </div>
-
-      <div class="card shop">
-        <div class="pic">🏪</div>
-        <h3>Main Dukandaar hu</h3>
-        <p>Apni dukaan chalao, business badhao</p>
-        <a class="btn" href="shopkeeper.html">Continue →</a>
-      </div>
-    </div>
-
-    <div class="why">
-      <b>Why choose DukaanAI?</b>
-      <div class="why-row">
-        <div><b>🚀</b>Business badhao</div>
-        <div><b>👥</b>Customers jodo</div>
-        <div><b>📦</b>Stock sambhalo</div>
-        <div><b>🛵</b>Delivery</div>
-      </div>
-    </div>
-  </div>
+  // Get Started dabane par: awaaz bhi aur agla screen bhi
+  function startApp() {
+    speakWelcome();
+    document.getElementById('splash').style.display = 'none';
+    document.getElementById('roles').style.display = 'block';
+  }
+</script>
 
