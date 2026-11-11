@@ -242,4 +242,52 @@
         var row = document.createElement('div');
         row.className = 'item';
 
-        var left = document.cre
+        var left = document.createElement('div');
+        left.className = 'left';
+
+        // Photo (sirf hamare apne Storage ka link maano)
+        var thumb;
+        if (item.image_url && item.image_url.indexOf(PHOTO_PUBLIC_URL) === 0) {
+          thumb = document.createElement('img');
+          thumb.className = 'thumb';
+          thumb.src = item.image_url;
+          thumb.alt = item.item_name;
+        } else {
+          thumb = document.createElement('div');
+          thumb.className = 'thumb';
+          thumb.textContent = '📦';
+        }
+
+        var nameSpan = document.createElement('span');
+        nameSpan.textContent = item.item_name;
+
+        left.appendChild(thumb);
+        left.appendChild(nameSpan);
+
+        var right = document.createElement('div');
+        right.className = 'right';
+
+        var priceSpan = document.createElement('span');
+        priceSpan.textContent = '₹' + item.price;
+
+        var delBtn = document.createElement('button');
+        delBtn.className = 'del';
+        delBtn.textContent = 'Hatao';
+        delBtn.onclick = function () { removeItem(item.id); };
+
+        right.appendChild(priceSpan);
+        right.appendChild(delBtn);
+        row.appendChild(left);
+        row.appendChild(right);
+        list.appendChild(row);
+      });
+    }
+
+    shopName = loadShopName();
+    document.getElementById('shopName').value = shopName;
+    document.getElementById('bannerName').textContent = shopName || 'Dukaan ka naam likho';
+    loadItems();
+  </script>
+
+</body>
+</html>
