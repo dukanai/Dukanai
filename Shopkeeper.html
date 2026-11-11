@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DukaanAI - Dukandaar</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, sans-serif; background: #fff8ee; color: #1a1a4b; }
+    .topbar { background: #f57c00; color: white; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+    .topbar a { color: white; text-decoration: none; font-size: 22px; }
+    .topbar .title { font-size: 20px; font-weight: bold; }
+    .box { background: white; margin: 14px 12px; padding: 14px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .box h3 { margin: 0 0 10px; }
+    label { font-size: 14px; font-weight: bold; }
+    input { display: block; width: 100%; padding: 12px; margin: 6px 0 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; }
+    .btn { display: block; width: 100%; padding: 13px; border: none; border-radius: 28px; background: #f57c00; color: white; font-size: 16px; font-weight: bold; }
+    .banner { background: linear-gradient(135deg, #f57c00, #ffb74d); color: white; margin: 14px 12px; padding: 24px 16px; border-radius: 14px; }
+    .banner .small { font-size: 13px; opacity: 0.9; }
+    .banner .name { font-size: 24px; font-weight: bold; margin-top: 4px; }
+    .item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 15px; }
+    .item:last-child { border-bottom: none; }
+    .item .right { display: flex; align-items: center; gap: 10px; }
+    .del { background: #ffebee; color: #c62828; border: none; border-radius: 16px; padding: 6px 12px; font-size: 13px; }
+    .note { font-size: 12px; color: #666; text-align: center; margin: 10px 12px 24px; }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <a href="index.html">←</a>
+    <div class="title">Dukandaar Panel</div>
+  </div>
+
+  <!-- Banner: yahan dukaan ka naam dikhega -->
+  <div class="banner">
+    <div class="small">Aapki dukaan</div>
+    <div class="name" id="bannerName">Dukaan ka naam likho</div>
+  </div>
+
+  <!-- Dukaan ka naam -->
+  <div class="box">
+    <label>Dukaan ka naam</label>
+    <input id="shopName" type="text" placeholder="Jaise: Sharma Kirana Store">
+    <button class="btn" onclick="saveShop()">Naam save karo</button>
+  </div>
+
+  <!-- Item jodo -->
+  <div class="box">
+    <h3>Naya item jodo</h3>
+    <label>Item ka naam</label>
+    <input id="itemName" type="text" placeholder="Jaise: Atta 5kg">
+    <label>Price (₹)</label>
+    <input id="itemPrice" type="number" placeholder="Jaise: 220">
+    <button class="btn" onclick="addItem()">+ Item Add karo</button>
+  </div>
+
+  <!-- Items ki list -->
+  <div class="box">
+    <h3>Aapke items</h3>
+    <div id="list"></div>
+  </div>
+
+  <div class="note">Abhi ye items sirf is phone mein save hote hain. Customer ko dikhane ke liye baad mein database jodenge.</div>
+
+  <script>
+    // Phone mein data save/load karne ke functions
+    function loadData() {
+      try {
+        var d = localStorage.getItem('dukaanai_shop');
+        if (d) { return JSON.parse(d); }
+      } catch (e) {}
+      return { name: '', items: [] };
+    }
+
+    function saveData() {
+      try {
+        localStorage.setItem('dukaanai_shop', JSON.stringify(shop));
+      } catch (e) {}
+    }
+
+    var shop = loadData();
+
+    // Dukaan ka naam save karo
+    function saveShop() {
+      var n = document.getElementById('shopName').value.trim();
+      if (n === '') {
+        alert('Pehle dukaan ka naam likho');
+        return;
+      }
+      shop.name = n;
+      saveData();
+      render();
+    }
+
+    // Item add karo
+    function addItem() {
+      var n = document.getElementById('itemName').value.trim();
+      var p = document.getElementById('itemPrice').value.trim();
+      if (n === '' || p === '') {
+        alert('Item ka naam aur price dono likho');
+        return;
+      }
+      shop.items.push({ name: n, price: p });
+      saveData();
+      document.getElementById('itemName').value = '';
+      document.getElementById('itemPrice').value = '';
+      render();
+    }
+
+    // Item hatao
+    function removeItem(index) {
+      shop.items.splice(index, 1);
+      saveData();
+      render();
+    }
+
+    // Screen par sab dikhao
+    function render() {
+      document.getElementById('bannerName').textContent = shop.name || 'Dukaan ka naam likho';
+
+      var list = document.getElementById('list');
+      list.innerHTML = '';
+
+      if (shop.items.length === 0) {
+        list.textContent = 'Abhi koi item nahi hai.';
+        return;
+      }
+
+      shop.items.forEach(function (item, index) {
+        var row = document.createElement('div');
+        row.className = 'item';
+
+        var nameSpan = document.createElement('span');
+        nameSpan.textContent = item.name;
+
+        var right = document.createElement('div');
+        right.className = 'right';
+
+        var priceSpan = document.createElement('span');
+        priceSpan.textContent = '₹' + item.price;
+
+        var delBtn = document.createElement('button');
+        delBtn.className = 'del';
+        delBtn.textContent = 'Hatao';
+        delBtn.onclick = function () { removeItem(index); };
+
+        right.appendChild(priceSpan);
+        right.appendChild(delBtn);
+        row.appendChild(nameSpan);
+        row.appendChild(right);
+        list.appendChild(row);
+      });
+    }
+
+    // Page khulte hi purana naam aur items dikhao
+    document.getElementById('shopName').value = shop.name;
+    render();
+  </script>
+
+</body>
+</html>
