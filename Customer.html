@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DukaanAI - Grahak</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, sans-serif; background: #f5f0ff; color: #1a1a4b; }
+    .topbar { background: #6a1b9a; color: white; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+    .topbar a { color: white; text-decoration: none; font-size: 22px; }
+    .topbar .title { font-size: 20px; font-weight: bold; }
+    .searchbox { margin: 14px 12px; }
+    .searchbox input { display: block; width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 24px; font-size: 16px; }
+    .shop { background: white; margin: 14px 12px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); overflow: hidden; }
+    .shop .head { background: linear-gradient(135deg, #6a1b9a, #ab47bc); color: white; padding: 14px 16px; font-size: 18px; font-weight: bold; }
+    .shop .body { padding: 4px 14px; }
+    .item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 15px; }
+    .item:last-child { border-bottom: none; }
+    .item .left { display: flex; align-items: center; gap: 10px; }
+    .thumb { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    .price { font-weight: bold; color: #6a1b9a; }
+    #status { margin: 14px 12px; text-align: center; font-size: 14px; color: #666; }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <a href="index.html">←</a>
+    <div class="title">Dukaan dhundo</div>
+  </div>
+
+  <div class="searchbox">
+    <input id="searchInput" type="text" placeholder="Kya chahiye? Jaise: atta, chawal...">
+  </div>
+
+  <div id="status">Load ho raha hai...</div>
+  <div id="shops"></div>
+
+  <script>
+    // Supabase ki jaankari (publishable key website ke code mein rakhna safe hai)
+    var SUPABASE_URL = 'https://fbfubeqrnrjyhzbunwif.supabase.co';
+    var SUPABASE_KEY = 'sb_publishable_T4K1yk-9-TA5nz62K8RFnw_7KzciLCt';
+    var TABLE_URL = SUPABASE_URL + '/rest/v1/shop_items';
+    var PHOTO_PUBLIC_URL = SUPABASE_URL + '/storage/v1/object/public/item-images/';
+
+    var allItems = [];
+
+    async function loadAll() {
+      var status = document.getElementById('status');
+      try {
+        var url = TABLE_URL + '?select=id,shop_name,item_name,price,image_url&order=created_at.asc';
+        var res = await fetch(url, { headers: { 'apikey': SUPABASE_KEY } });
+        if (!res.ok) { throw new Error('Status ' + res.status); }
+        allItems = await res.json();
+        status.textContent = '';
+        render('');
+      } catch (e) {
+        status.textContent = 'Items load nahi hue. Internet check karo.';
+      }
+    }
+
+    // Abhi simple search: naam mein jo likha hai wo dhundhta hai.
+    // Smart Hinglish search agle step mein yahin judega.
+    function matches(item, text) {
+      if (text === '') { return true; }
+      return item.item_name.toLowerCase().indexOf(text) !== -1;
+    }
+
+    function render(searchText) {
+      var text = searchText.trim().toLowerCase();
+      var container = document.getElementById('shops');
+      var status = document.getElementById('status');
+      container.innerHTML = '';
+
+      // Dukaan ke hisaab se items alag-alag karo
+      var groups = {};
+      allItems.forEach(function (item) {
+        if (!matches(item, text)) { return; }
+        if (!groups[item.shop_name]) { groups[item.shop_name] = []; }
+        groups[item.shop_name].push(item);
+      });
+
+      var names = Object.keys(groups);
+      if (names.length === 0) {
+        status.textContent = allItems.length === 0 ? 'Abhi koi dukaan nahi judi hai.' : 'Kuch nahi mila.';
+        return;
+      }
+      status.textContent = '';
+
+      names.forEach(function (shop) {
+        var box = document.createElement('div');
+        box.className = 'shop';
+
+        var head = document.createElement('div');
+        head.className = 'head';
+        head.textContent = shop;
+
+        var body = document.createElement('div');
+        body.className = 'body';
+
+        groups[shop].forEach(function (item) {
+          var row = document.createElement('div');
+          row.className = 'item';
+
+          var left = document.createElement('div');
+          left.className = 'left';
+
+          var thumb;
+          if (item.image_url && item.image_url.indexOf(PHOTO_PUBLIC_URL) === 0) {
+            thumb = document.createElement('img');
+            thumb.className = 'thumb';
+            thumb.src = item.image_url;
+            thumb.alt = item.item_name;
+          } else {
+            thumb = document.createElement('div');
+            thumb.className = 'thumb';
+            thumb.textContent = '📦';
+          }
+
+          var nameSpan = document.createElement('span');
+          nameSpan.textContent = item.item_name;
+          left.appendChild(thumb);
+          left.appendChild(nameSpan);
+
+          var priceSpan = document.createElement('span');
+          priceSpan.className = 'price';
+          priceSpan.textContent = '₹' + item.price;
+
+          row.appendChild(left);
+          row.appendChild(priceSpan);
+          body.appendChild(row);
+        });
+
+        box.appendChild(head);
+        box.appendChild(body);
+        container.appendChild(box);
+      });
+    }
+
+    document.getElementById('searchInput').addEventListener('input', function (e) {
+      render(e.target.value);
+    });
+
+    loadAll();
+  </script>
+
+</body>
+</html>
