@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DukaanAI</title>
+<style>
+:root{--bg:#f2f1fb;--card:#fff;--tx:#1d1b3a;--mut:#6b6a85;--pri:#4b2bc4;--ln:#e4e2f3;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15132b;--card:#201d3d;--tx:#f0eefc;--mut:#a9a6c9;--ln:#312e57}}
+:root[data-theme="dark"]{--bg:#15132b;--card:#201d3d;--tx:#f0eefc;--mut:#a9a6c9;--ln:#312e57}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;max-width:480px;margin:auto;padding-bottom:76px}
+header{background:linear-gradient(135deg,#4b2bc4,#6a3fe0);color:#fff;padding:16px;display:flex;align-items:center;gap:10px;border-radius:0 0 18px 18px}
+header h1{margin:0;font-size:24px}header small{opacity:.85}
+.logo{font-size:34px}.grow{flex:1}
+.shop{background:#ffffff22;padding:6px 10px;border-radius:20px;font-size:12px}
+.pad{padding:10px 12px}
+.welcome{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
+.welcome b{font-size:16px}.welcome small{color:var(--mut)}
+.on{background:#c9f2d3;color:#0a6b2b;font-size:11px;padding:4px 8px;border-radius:12px}
+.grid4{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.stat{border-radius:12px;padding:12px;color:#fff}
+.stat b{font-size:22px;display:block}.stat small{opacity:.9;font-size:11px}
+.s1{background:linear-gradient(135deg,#1c5df0,#2d7bff)}.s2{background:linear-gradient(135deg,#15a34a,#2cc36b)}
+.s3{background:linear-gradient(135deg,#f08a00,#ffa726)}.s4{background:linear-gradient(135deg,#5b2bd0,#7c4dff)}
+.icons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ic{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:10px 4px;text-align:center;font-size:12px;font-weight:600}
+.ic span{display:block;font-size:24px;margin-bottom:4px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:12px}
+.card h2{margin:0 0 8px;font-size:15px;display:flex;justify-content:space-between}
+.card h2 a{font-size:12px;color:var(--pri);font-weight:600}
+@media(prefers-color-scheme:dark){.card h2 a{color:#b9a6ff}}
+.ord{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--ln)}
+.ord .av{font-size:26px}.ord .grow small{color:var(--mut);display:block;font-size:12px}
+.tag{font-size:11px;padding:3px 9px;border-radius:12px;font-weight:600}
+.pen{background:#c9f2d3;color:#0a6b2b}.pak{background:#cfe0ff;color:#1747b8}.del{background:#e0d6ff;color:#4b2bc4}
+.t{font-size:11px;color:var(--mut);width:48px;text-align:right}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ring{width:84px;height:84px;border-radius:50%;background:conic-gradient(#16a34a 0 75%,#f59e0b 75% 87.5%,#c7c4e6 87.5%);display:grid;place-items:center;margin:auto}
+.ring div{width:62px;height:62px;border-radius:50%;background:var(--card);display:grid;place-items:center;text-align:center;font-weight:700;font-size:15px;line-height:1.1}
+.ring small{font-size:9px;font-weight:400;color:var(--mut)}
+.leg{font-size:12px;margin-top:8px;color:var(--mut)}.leg p{margin:2px 0;display:flex;justify-content:space-between}
+.bot{background:linear-gradient(135deg,#e7e0ff,#d8ccff);color:#1d1b3a;text-align:center}
+.bot .em{font-size:44px}.bot small{display:block;margin:4px 0 8px;font-size:12px}
+button{border:0;background:var(--pri);color:#fff;padding:9px;border-radius:10px;width:100%;font-weight:600;font-size:13px}
+.qa{display:block;width:100%;text-align:left;background:var(--bg);color:var(--tx);border:1px solid var(--ln);margin-top:6px;font-weight:500}
+nav{position:fixed;left:0;right:0;bottom:0;max-width:480px;margin:auto;background:var(--card);border-top:1px solid var(--ln);display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
+nav div{flex:1;text-align:center;font-size:11px;color:var(--mut);padding:4px 0;border-radius:10px}
+nav div span{display:block;font-size:20px}
+nav .act{background:var(--pri);color:#fff}
+.sheet{display:none;position:fixed;inset:0;background:#000a;z-index:20;align-items:flex-end}.sheet.open{display:flex}.sheet>div{background:var(--card);width:100%;max-width:480px;margin:auto;border-radius:18px 18px 0 0;padding:16px;max-height:85%;overflow:auto}.sheet h2{margin:0 0 10px;font-size:18px}.sheet input{width:100%;padding:11px;margin:4px 0;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font-size:15px}.xr{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--ln)}.xr span{flex:1}.xr i{font-style:normal;color:#d33;padding:0 6px}.xtot{display:flex;justify-content:space-between;font-weight:700;padding:10px 0}.close{background:var(--bg);color:var(--tx);border:1px solid var(--ln);margin-top:8px}.ok{color:#15803d;font-weight:600}.no{color:#d33;font-weight:600}.wn{color:#c27b00;font-weight:600}.xr small{color:var(--mut)}body{background:radial-gradient(circle at 100% 0,#7c4dff26,transparent 45%),var(--bg);padding-bottom:100px}
+header{position:relative;overflow:hidden;padding:18px 16px 22px;border-radius:0 0 28px 28px;box-shadow:0 8px 24px #4b2bc455}
+header::after{content:"";position:absolute;right:-40px;top:-50px;width:160px;height:160px;border-radius:50%;background:#ffffff1a}
+header>*{position:relative;z-index:1}
+.logo{background:#ffffff26;border-radius:16px;width:52px;height:52px;display:grid;place-items:center;font-size:28px}
+.hb{position:relative;width:40px;height:40px;border-radius:50%;background:#ffffff26;display:grid;place-items:center;font-size:18px;border:0;padding:0;color:#fff}
+.hb i{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:#ef4444;color:#fff;font:700 11px/1 system-ui;font-style:normal;padding:0 4px;place-items:center}
+.stat{position:relative;overflow:hidden;border-radius:18px;padding:14px;box-shadow:0 8px 18px #0002}
+.stat::after{position:absolute;right:8px;top:6px;font-size:34px;opacity:.3}
+.s1::after{content:"🛍️"}.s2::after{content:"💰"}.s3::after{content:"🧾"}.s4::after{content:"📈"}
+.stat b{font-size:26px;letter-spacing:-.5px;margin:2px 0}
+.card,.welcome,.ic{border-radius:18px;box-shadow:0 4px 14px #4b2bc412}
+.ic{padding:12px 4px;transition:transform .15s}.ic:active{transform:scale(.95)}
+.ic span{width:46px;height:46px;margin:0 auto 6px;display:grid;place-items:center;border-radius:14px;font-size:22px}
+.ic:nth-child(1) span{background:#dbe7ff}.ic:nth-child(2) span{background:#ffe8c7}.ic:nth-child(3) span{background:#d6f5e0}.ic:nth-child(4) span{background:#e6dcff}.ic:nth-child(5) span{background:#ffdcdc}.ic:nth-child(6) span{background:#d8f3f7}
+.ord{border-radius:12px;padding:8px 6px}.ord:active{background:var(--bg)}
+nav{left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));border:1px solid var(--ln);border-radius:24px;box-shadow:0 10px 28px #4b2bc433;padding:6px}
+nav div{border-radius:18px;transition:background .2s}
+.sheet>div{animation:up .25s ease;border-radius:26px 26px 0 0}
+.sheet>div::before{content:"";display:block;width:40px;height:4px;border-radius:2px;background:var(--ln);margin:0 auto 12px}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.warn{background:#fff4d6;color:#7a4b00;border:1px solid #f5d27a;border-radius:14px;padding:10px 12px;font-size:13px}
+@media(prefers-reduced-motion:reduce){.sheet>div{animation:none}}
+body{padding-bottom:70px}
+header{padding:12px 10px;gap:8px;border-radius:0 0 14px 14px;box-shadow:none}
+header::after{display:none}
+.logo{width:40px;height:40px;font-size:24px;border-radius:12px}
+header h1{font-size:20px}header small{font-size:10px}
+.hb{width:32px;height:32px;font-size:16px}
+.shop{display:flex;align-items:center;gap:5px;font-size:10px;line-height:1.2;max-width:112px;padding:4px 7px 4px 4px;border-radius:20px}
+.av2{width:24px;height:24px;border-radius:50%;background:#fff3;display:grid;place-items:center;font-size:13px;flex:none}
+.welcome{background:color-mix(in srgb,var(--pri) 12%,var(--card));border-radius:12px;box-shadow:none}
+.welcome b{font-size:14px}.welcome small{font-size:11px}
+.grid4{grid-template-columns:repeat(4,1fr);gap:5px}
+.stat{padding:8px 4px 8px 32px;border-radius:10px;box-shadow:none}
+.stat::after{display:none}
+.stat::before{position:absolute;left:6px;top:9px;font-size:20px}
+.s1::before{content:"🛍️"}.s2::before{content:"📊"}.s3::before{content:"👛"}.s4::before{content:"💰"}
+.stat small{font-size:9px;display:block;line-height:1.2}
+.stat b{font-size:15px;margin:1px 0;letter-spacing:0}
+.icons{grid-template-columns:repeat(6,1fr);gap:4px}
+.ic{position:relative;padding:6px 1px;font-size:8.5px;line-height:1.15;border-radius:12px;box-shadow:none}
+.ic span{width:28px;height:28px;font-size:16px;margin:0 auto 4px;border-radius:9px}
+.nb{position:absolute;top:-4px;right:-2px;background:#ef4444;color:#fff;font:700 9px/14px system-ui;font-style:normal;width:14px;height:14px;border-radius:50%;text-align:center}
+.card{border-radius:12px;box-shadow:none;padding:8px}
+.card h2{font-size:12px}.card h2 a{font-size:9px}
+.ord{display:grid;grid-template-columns:22px 1fr auto;gap:0 5px;align-items:center;padding:6px 2px}
+.ord .av{grid-row:1/3;font-size:20px}.ord .grow{grid-row:1/3;font-size:11px;min-width:0}.ord .grow small{font-size:9px}
+.tag{font-size:8.5px;padding:2px 6px;grid-column:3}.ord .t{grid-column:3;width:auto;font-size:8.5px}
+.card svg{overflow:visible}.card svg text{font-size:13px}
+.row3{grid-template-columns:repeat(3,1fr);gap:5px}
+.ring{width:66px;height:66px}.ring div{width:48px;height:48px;font-size:12px}
+.leg{font-size:9px}
+.bot .em{font-size:34px}.bot b{font-size:11px}.bot small{font-size:9px}
+button{font-size:11px;padding:7px}
+.qa{font-size:9.5px;padding:7px 5px;margin-top:5px}
+nav{left:0;right:0;bottom:0;border-radius:0;box-shadow:none;padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px))}
+nav .act{border-radius:10px}
+</style></head><body>
+<header><div class="logo">🏪</div><div class="grow"><h1>DukaanAI</h1><small>Smart Shop, Smart Business</small></div><button class="hb" aria-label="Pending orders">🔔<i id="bd">0</i></button><div class="shop"><span class="av2">🏬</span>Shivam Kirana Store ▾</div></header>
+
+<div class="pad"><div class="welcome"><div><b id="gr">👋 Welcome, Shivam Ji!</b><br><small>Grow your shop with DukaanAI 🚀</small></div><span class="on">● Shop Online</span></div></div>
+
+<div class="pad" id="al" hidden></div><div class="pad grid4">
+<div class="stat s1"><small>Total Orders</small><b id="oc">24</b><small>▲ 12% This Month</small></div>
+<div class="stat s2"><small>Total Sales</small><b id="sl">₹12,480</b><small>▲ 18% This Month</small></div>
+<div class="stat s3"><small>Expenses</small><b id="ex">₹3,200</b><small>This Month</small></div>
+<div class="stat s4"><small>Profit</small><b id="pf">₹9,280</b><small>▲ 22% This Month</small></div>
+</div>
+
+<div class="pad icons">
+<div class="ic"><i class="nb" id="nb">3</i><span>📋</span>Customer Orders</div><div class="ic" id="invbtn"><span>📦</span>Inventory & Stock</div><div class="ic"><span>🚚</span>Delivery Management</div>
+<div class="ic" id="slbtn"><span>📈</span>Sales & Profit</div><div class="ic" id="exbtn"><span>👛</span>Expenses</div><div class="ic"><span>🤖</span>DukaanAI Assistant</div>
+</div>
+
+<div class="pad row"><div class="card"><h2>🛒 Recent Orders <a id="demo">+ Demo order</a></h2>
+<div id="ol"></div>
+</div>
+<div class="card"><h2>📊 Sales Overview <a>This Month ▾</a></h2>
+<svg viewBox="0 0 300 120" width="100%" role="img" aria-label="Sales chart"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7c4dff" stop-opacity=".4"/><stop offset="1" stop-color="#7c4dff" stop-opacity="0"/></linearGradient></defs>
+<path d="M0 100 L40 85 L80 80 L120 70 L160 55 L200 40 L240 50 L270 45 L300 42 L300 120 L0 120Z" fill="url(#g)"/>
+<path d="M0 100 L40 85 L80 80 L120 70 L160 55 L200 40 L240 50 L270 45 L300 42" fill="none" stroke="#6a3fe0" stroke-width="2.5"/>
+<rect x="168" y="6" width="58" height="24" rx="5" fill="#1d1b3a"/><text x="197" y="23" text-anchor="middle" fill="#fff">₹5,200</text><circle cx="200" cy="40" r="4" fill="#fff" stroke="#6a3fe0" stroke-width="2"/><text x="0" y="116" font-size="9" fill="#8a88a8">1 Nov</text><text x="130" y="116" font-size="9" fill="#8a88a8">14 Nov</text><text x="265" y="116" font-size="9" fill="#8a88a8">30 Nov</text></svg></div></div>
+
+<div class="pad row row3">
+<div class="card"><h2>🚚 Delivery <a>View All</a></h2><div class="ring"><div><span>6/8<br><small>On Time</small></span></div></div>
+<div class="leg"><p><span>🟢 Delivered</span><b>6</b></p><p><span>🟠 In Transit</span><b>1</b></p><p><span>⚪ Pending</span><b>1</b></p></div></div>
+<div class="card bot"><div class="em">🤖</div><b>DukaanAI Assistant</b><small>Ask anything… "Best selling items?"</small><button id="chat">Chat Now</button></div>
+
+<div class="card"><h2>⚡ Quick Actions</h2>
+<button class="qa">➕ Add New Product</button><button class="qa">📦 Update Stock</button><button class="qa">🏷️ Create Offer</button><button class="qa">📑 View Reports</button></div></div>
+
+<div class="sheet" id="sh"><div><h2>👛 Expenses</h2><input id="xn" placeholder="Kharcha ka naam (jaise Rent)"><input id="xa" type="number" inputmode="numeric" placeholder="Amount ₹"><button id="xadd">Add Expense</button><div id="xl"></div><div class="xtot"><span>Total</span><span id="xt"></span></div><button class="close" id="xc">Close</button></div></div>
+<div class="sheet" id="sh2"><div><h2>📈 Sales & Profit</h2><input id="sn" placeholder="Bikri ka naam (jaise Riya ka order)"><input id="sa" type="number" inputmode="numeric" placeholder="Amount ₹"><button id="sadd">Add Sale</button><div id="sll"></div><div class="xtot"><span>Total Sales</span><span id="st"></span></div><div class="xtot"><span>Profit (Sales − Expenses)</span><span id="pt"></span></div><button class="close" id="sc">Close</button></div></div>
+<div class="sheet" id="sh3"><div><h2>📦 Inventory & Stock</h2><input id="inn" placeholder="Saman ka naam (jaise Atta 5kg)"><input id="ip" type="number" inputmode="numeric" placeholder="Asli price ₹"><input id="iq" type="number" inputmode="numeric" placeholder="Kitna stock hai"><button id="iadd">Save Item</button><div id="il"></div><button class="close" id="icl">Close</button></div></div>
+<div class="sheet" id="sh4"><div><div id="od"></div><div id="ob"></div><button class="close" id="ocl">Close</button></div></div>
+<nav><div class="act"><span>🏠</span>Home</div><div><span>🛒</span>Orders</div><div><span>📦</span>Inventory</div><div><span>📊</span>Reports</div><div><span>🚚</span>Delivery</div><div><span>⋯</span>More</div></nav>
+<script>
+var $=function(i){return document.getElementById(i)},KEY='dk_exp',KS='dk_sal',L=null,M=null;
+try{L=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!Array.isArray(L))L=[{n:'Rent',a:2000},{n:'Electricity',a:700},{n:'Transport',a:500}];
+function save(){try{localStorage.setItem(KEY,JSON.stringify(L));localStorage.setItem(KS,JSON.stringify(M))}catch(e){}}
+try{M=JSON.parse(localStorage.getItem(KS))}catch(e){}
+if(!Array.isArray(M))M=[{n:'Aaj tak ki bikri',a:12480}];
+function fm(x){return '₹'+x.toLocaleString('en-IN')}
+function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function draw(){var t=0,h='';L.forEach(function(e,i){t+=e.a;h+='<div class="xr"><span>'+esc(e.n)+'</span><b>'+fm(e.a)+'</b><i data-i="'+i+'">✕</i></div>'});$('xl').innerHTML=h;$('ex').textContent=fm(t);$('xt').textContent=fm(t);var s=0,h2='';M.forEach(function(e,i){s+=e.a;h2+='<div class="xr"><span>'+esc(e.n)+'</span><b>'+fm(e.a)+'</b><i data-i="'+i+'">✕</i></div>'});$('sll').innerHTML=h2;$('sl').textContent=fm(s);$('st').textContent=fm(s);$('pf').textContent=fm(s-t);$('pt').textContent=fm(s-t)}
+$('exbtn').onclick=function(){$('sh').classList.add('open')};
+$('xc').onclick=function(){$('sh').classList.remove('open')};
+$('xadd').onclick=function(){var n=$('xn').value.trim(),a=parseFloat($('xa').value);if(!n||!(a>0)){alert('Naam aur sahi amount daliye');return}L.push({n:n,a:a});save();$('xn').value='';$('xa').value='';draw()};
+$('xl').onclick=function(e){var i=e.target.getAttribute('data-i');if(i!==null){L.splice(+i,1);save();draw()}};
+$('chat').onclick=function(){this.textContent='Coming soon…'};
+$('slbtn').onclick=function(){$('sh2').classList.add('open')};
+$('sc').onclick=function(){$('sh2').classList.remove('open')};
+$('sadd').onclick=function(){var n=$('sn').value.trim(),a=parseFloat($('sa').value);if(!n||!(a>0)){alert('Naam aur sahi amount daliye');return}M.push({n:n,a:a});save();$('sn').value='';$('sa').value='';draw()};
+$('sll').onclick=function(e){var i=e.target.getAttribute('data-i');if(i!==null){M.splice(+i,1);save();draw()}};
+draw();
+</script>
+<script>
+var INV,ORD,cur=-1;
+function ld(k,d){try{var v=JSON.parse(localStorage.getItem(k));if(Array.isArray(v))return v}catch(e){}return d}
+INV=ld('dk_inv',[{n:'Atta 5kg',p:240,q:12},{n:'Sugar 1kg',p:45,q:0},{n:'Rice 1kg',p:60,q:3},{n:'Tata Salt',p:28,q:20},{n:'Maggi',p:14,q:30}]);
+ORD=ld('dk_ord',[{c:'Riya Kumari',s:'Pending',t:'2h ago',i:[{n:'Atta 5kg',q:1},{n:'Sugar 1kg',q:2}]},{c:'Rajesh Kumar',s:'Packed',t:'3h ago',i:[{n:'Rice 1kg',q:2}]},{c:'Amit Singh',s:'Delivered',t:'5h ago',i:[{n:'Maggi',q:5}]}]);
+var _s=save;save=function(){_s();try{localStorage.setItem('dk_inv',JSON.stringify(INV));localStorage.setItem('dk_ord',JSON.stringify(ORD))}catch(e){}};
+var cls={Pending:'pen',Packed:'pak',Delivered:'del',Rejected:'del'};
+function find(n){for(var k=0;k<INV.length;k++)if(INV[k].n===n)return INV[k];return null}
+function tot(o){var t=0;o.i.forEach(function(x){var f=find(x.n);t+=(f?f.p:0)*x.q});return t}
+function drawX(){var h='';ORD.forEach(function(o,i){h+='<div class="ord" data-o="'+i+'"><div class="av">🛍️</div><div class="grow"><b>'+esc(o.c)+'</b><small>'+o.i.length+' Items • ₹'+tot(o)+'</small></div><span class="tag '+cls[o.s]+'">'+o.s+'</span><span class="t">'+o.t+'</span></div>'});
+$('ol').innerHTML=h;$('oc').textContent=ORD.length;
+var g='';INV.forEach(function(f,i){g+='<div class="xr"><span>'+esc(f.n)+'<br><small>₹'+f.p+' • Stock: '+f.q+'</small></span><b class="'+(f.q>0?'ok':'no')+'">'+(f.q>0?'Hai':'Khatam')+'</b><i data-i="'+i+'">✕</i></div>'});$('il').innerHTML=g}
+var _d=draw;draw=function(){_d();drawX()};
+function openO(i){cur=i;var o=ORD[i],h='',ok=true;
+o.i.forEach(function(x){var f=find(x.n),st,c;
+if(!f){st='❌ Inventory mein nahi';c='no';ok=false}
+else if(f.q>=x.q){st='✅ Stock hai ('+f.q+')';c='ok'}
+else if(f.q>0){st='⚠️ Kam stock ('+f.q+' bacha)';c='wn';ok=false}
+else{st='❌ Stock nahi';c='no';ok=false}
+h+='<div class="xr"><span><b>'+esc(x.n)+'</b> × '+x.q+'<br><small>Asli price: ₹'+(f?f.p:'-')+' • <span class="'+c+'">'+st+'</span></small></span><b>₹'+(f?f.p*x.q:0)+'</b></div>'});
+$('od').innerHTML='<h2>'+esc(o.c)+'</h2>'+h+'<div class="xtot"><span>Total</span><span>₹'+tot(o)+'</span></div>'+(ok?'':'<p class="no">Kuch saman poora nahi hai.</p>');
+var b='';
+if(o.s==='Pending')b=(ok?'<button id="ob1">Pack karo</button>':'<button disabled style="opacity:.5">Pack nahi ho sakta (stock kam)</button>')+'<button class="close" id="ob0">Reject</button>';
+else if(o.s==='Packed')b='<button id="ob2">Delivered ho gaya</button>';
+$('ob').innerHTML=b;$('sh4').classList.add('open')}
+$('ol').onclick=function(e){var r=e.target.closest('.ord');if(r)openO(+r.getAttribute('data-o'))};
+$('ob').onclick=function(e){var id=e.target.id,o=ORD[cur];if(!o)return;
+if(id==='ob1'){o.i.forEach(function(x){var f=find(x.n);if(f)f.q-=x.q});o.s='Packed'}
+else if(id==='ob0'){o.s='Rejected'}
+else if(id==='ob2'){o.s='Delivered';M.push({n:'Order: '+o.c,a:tot(o)})}
+else return;
+save();draw();$('sh4').classList.remove('open')};
+$('ocl').onclick=function(){$('sh4').classList.remove('open')};
+$('invbtn').onclick=function(){$('sh3').classList.add('open')};
+$('icl').onclick=function(){$('sh3').classList.remove('open')};
+$('iadd').onclick=function(){var n=$('inn').value.trim(),p=parseFloat($('ip').value),q=parseInt($('iq').value,10);if(!n||!(p>=0)||!(q>=0)){alert('Naam, price aur stock sahi daliye');return}var f=find(n);if(f){f.p=p;f.q=q}else INV.push({n:n,p:p,q:q});save();['inn','ip','iq'].forEach(function(k){$(k).value=''});draw()};
+$('il').onclick=function(e){var i=e.target.getAttribute('data-i');if(i!==null){INV.splice(+i,1);save();draw()}};
+$('demo').onclick=function(){if(!INV.length){alert('Pehle inventory mein saman daliye');return}var it=[],k=1+Math.floor(Math.random()*3);for(var j=0;j<k;j++){var n=INV[Math.floor(Math.random()*INV.length)].n;if(!it.some(function(x){return x.n===n}))it.push({n:n,q:1+Math.floor(Math.random()*3)})}
+var cn=['Sunita Devi','Mohan Lal','Pooja Kumari','Vikash Singh'];ORD.unshift({c:cn[Math.floor(Math.random()*4)],s:'Pending',t:'abhi',i:it});save();draw()};
+draw();
+</script>
+<script>
+(function(){var r=document.documentElement,h=new Date().getHours();
+$('gr').textContent=(h<12?'🌅 Suprabhat':h<17?'☀️ Namaste':'🌙 Shubh sandhya')+', Shivam Ji!';
+if($('th'))$('th').onclick=function(){var d=getComputedStyle(r).getPropertyValue('--bg').trim()==='#15132b';r.setAttribute('data-theme',d?'light':'dark')};
+var nv=document.querySelectorAll('nav div');
+function act(i){nv.forEach(function(x,k){x.classList.toggle('act',k===i)})}
+var go=[function(){scrollTo({top:0,behavior:'smooth'})},function(){$('ol').scrollIntoView({behavior:'smooth',block:'center'})},function(){$('sh3').classList.add('open')},function(){$('sh2').classList.add('open')},function(){document.querySelector('.ring').scrollIntoView({behavior:'smooth',block:'center'})},function(){$('sh').classList.add('open')}];
+nv.forEach(function(x,i){x.onclick=function(){act(i);go[i]()}});$('gr').textContent='👋 Welcome, Shivam Ji!';
+var _d2=draw;draw=function(){_d2();var p=ORD.filter(function(o){return o.s==='Pending'}).length;$('bd').textContent=p;$('nb').textContent=p;$('nb').style.display=p?'block':'none';$('bd').style.display=p?'grid':'none';
+var lo=INV.filter(function(f){return f.q<=3}).map(function(f){return f.n});var a=$('al');a.hidden=!lo.length;a.innerHTML=lo.length?'<div class="warn">⚠️ Stock kam hai: <b>'+esc(lo.join(', '))+'</b></div>':''};
+draw()})();
+</script>
+<script>
+/* ===== Supabase connection ===== */
+(function(){
+var U='https://fbfubeqrnrjyhzbunwif.supabase.co/rest/v1/',K='sb_publishable_T4K1yk-9-TA5nz62K8RFnw_7KzciLCt';
+var SHOP='';try{SHOP=localStorage.getItem('dk_shop')||''}catch(e){}
+var enc=encodeURIComponent;
+function api(p,o){o=o||{};o.headers={apikey:K,'Content-Type':'application/json',Prefer:'return=representation'};
+return fetch(U+p,o).then(function(r){return r.json()}).catch(function(){return {}})}
+function ago(d){var m=Math.floor((Date.now()-new Date(d))/60000);return m<1?'abhi':m<60?m+'m ago':m<1440?Math.floor(m/60)+'h ago':Math.floor(m/1440)+'d ago'}
+function load(){if(!SHOP)return;
+Promise.all([api('shop_items?shop_name=eq.'+enc(SHOP)+'&select=item_name,price,stock'),api('orders?shop_name=eq.'+enc(SHOP)+'&order=created_at.desc')]).then(function(r){
+if(!Array.isArray(r[0])||!Array.isArray(r[1])){alert('Database error: '+((r[0]&&r[0].message)||(r[1]&&r[1].message)||'pata nahi'));return}
+INV=r[0].map(function(f){return {n:f.item_name,p:f.price||0,q:f.stock||0}});
+ORD=r[1].map(function(o){return {id:o.id,c:o.customer_name||'Customer',s:o.status||'Pending',t:ago(o.created_at),i:(o.items||[]).map(function(x){return {n:x.item_name||x.n,q:x.qty||x.q||1}})}});
+M=ORD.filter(function(o){return o.s==='Delivered'}).map(function(o){return {n:'Order: '+o.c,a:tot(o)}});
+draw()})}
+INV=[];ORD=[];M=[];draw();
+/* dukaan chunne ka dropdown */
+var on=document.querySelector('.on'),sel=document.createElement('select');
+sel.style.cssText='background:transparent;border:0;color:inherit;font-size:11px;max-width:120px';
+on.innerHTML='';on.appendChild(sel);
+sel.innerHTML='<option value="">Dukaan chuniye ▾</option>';
+api('shop_items?select=shop_name').then(function(r){if(!Array.isArray(r))return;var seen={};r.forEach(function(x){if(!seen[x.shop_name]){seen[x.shop_name]=1;var o=document.createElement('option');o.value=o.textContent=x.shop_name;sel.appendChild(o)}});sel.value=SHOP;load()});
+sel.onchange=function(){SHOP=sel.value;try{localStorage.setItem('dk_shop',SHOP)}catch(e){}load()};
+/* order status badalna */
+$('ob').onclick=function(e){var id=e.target.id,o=ORD[cur];if(!o)return;var s={ob1:'Packed',ob0:'Rejected',ob2:'Delivered'}[id];if(!s)return;
+if(id==='ob1'){o.i.forEach(function(x){var f=find(x.n);if(f){f.q=Math.max(0,f.q-x.q);api('shop_items?shop_name=eq.'+enc(SHOP)+'&item_name=eq.'+enc(f.n),{method:'PATCH',body:JSON.stringify({stock:f.q})})}})}
+api('orders?id=eq.'+o.id,{method:'PATCH',body:JSON.stringify({status:s})}).then(load);
+o.s=s;$('sh4').classList.remove('open');draw()};
+/* saman jodna / badalna */
+$('iadd').onclick=function(){if(!SHOP){alert('Pehle dukaan chuniye');return}
+var n=$('inn').value.trim(),p=parseFloat($('ip').value),q=parseInt($('iq').value,10);
+if(!n||!(p>=0)||!(q>=0)){alert('Naam, price aur stock sahi daliye');return}
+var req=find(n)?api('shop_items?shop_name=eq.'+enc(SHOP)+'&item_name=eq.'+enc(n),{method:'PATCH',body:JSON.stringify({price:p,stock:q})}):api('shop_items',{method:'POST',body:JSON.stringify({shop_name:SHOP,item_name:n,price:p,stock:q})});
+req.then(function(r){if(r&&r.message)alert('Error: '+r.message);['inn','ip','iq'].forEach(function(k){$(k).value=''});load()})};
+$('il').onclick=function(e){var i=e.target.getAttribute('data-i');if(i===null)return;
+api('shop_items?shop_name=eq.'+enc(SHOP)+'&item_name=eq.'+enc(INV[+i].n),{method:'DELETE'}).then(load)};
+/* demo order (test ke liye) */
+$('demo').onclick=function(){if(!SHOP||!INV.length){alert('Pehle dukaan chuniye aur saman daliye');return}
+var it=[],k=1+Math.floor(Math.random()*3);
+for(var j=0;j<k;j++){var n=INV[Math.floor(Math.random()*INV.length)].n;if(!it.some(function(x){return x.item_name===n}))it.push({item_name:n,qty:1+Math.floor(Math.random()*3)})}
+var cn=['Sunita Devi','Mohan Lal','Pooja Kumari','Vikash Singh'];
+api('orders',{method:'POST',body:JSON.stringify({shop_name:SHOP,customer_name:cn[Math.floor(Math.random()*4)],items:it})}).then(function(r){if(r&&r.message)alert('Error: '+r.message);load()})};
+})();
+</script>
+</body>
+</html>
