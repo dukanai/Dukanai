@@ -20,6 +20,8 @@
     .banner { background: linear-gradient(135deg, #f57c00, #ffb74d); color: white; margin: 14px 12px; padding: 24px 16px; border-radius: 14px; }
     .banner .small { font-size: 13px; opacity: 0.9; }
     .banner .name { font-size: 24px; font-weight: bold; margin-top: 4px; }
+    .banner-row { display: flex; align-items: center; gap: 14px; }
+    .shoplogo { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 30px; flex-shrink: 0; }
     .item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 15px; }
     .item:last-child { border-bottom: none; }
     .item .left { display: flex; align-items: center; gap: 10px; }
@@ -38,8 +40,14 @@
   </div>
 
   <div class="banner">
-    <div class="small">Aapki dukaan</div>
-    <div class="name" id="bannerName">Dukaan ka naam likho</div>
+    <div class="banner-row">
+      <img id="bannerPhoto" class="shoplogo" style="display:none" alt="">
+      <div id="bannerEmoji" class="shoplogo">🏪</div>
+      <div>
+        <div class="small">Aapki dukaan</div>
+        <div class="name" id="bannerName">Dukaan ka naam likho</div>
+      </div>
+    </div>
   </div>
 
   <div id="msg"></div>
@@ -47,7 +55,9 @@
   <div class="box">
     <label>Dukaan ka naam</label>
     <input id="shopName" type="text" placeholder="Jaise: Sharma Kirana Store">
-    <button class="btn" onclick="saveShop()">Naam save karo</button>
+    <label>Dukaan ki photo (zaruri nahi)</label>
+    <input id="shopPhoto" type="file" accept="image/*">
+    <button class="btn" onclick="saveShop()">Dukaan save karo</button>
   </div>
 
   <div class="box">
@@ -75,6 +85,7 @@
     var TABLE_URL = SUPABASE_URL + '/rest/v1/shop_items';
     var PHOTO_UPLOAD_URL = SUPABASE_URL + '/storage/v1/object/item-images/';
     var PHOTO_PUBLIC_URL = SUPABASE_URL + '/storage/v1/object/public/item-images/';
+    var SHOPS_URL = SUPABASE_URL + '/rest/v1/shops';
 
     var shopName = '';
 
@@ -99,7 +110,8 @@
       return '';
     }
 
-    function saveShop() {
+    // Dukaan ka naam aur (agar chuni ho to) photo save karo
+    async function saveShop() {
       var n = document.getElementById('shopName').value.trim();
       if (n === '') {
         showMsg('Pehle dukaan ka naam likho', true);
@@ -108,8 +120,46 @@
       shopName = n;
       try { localStorage.setItem('dukaanai_shop_name', n); } catch (e) {}
       document.getElementById('bannerName').textContent = n;
-      showMsg('Naam save ho gaya', false);
+
+      var fileInput = document.getElementById('shopPhoto');
+      var row = { shop_name: n };
+      try {
+        if (fileInput.files.length > 0) {
+          row.image_url = await uploadPhoto(fileInput.files[0]);
+        }
+        var res = await fetch(SHOPS_URL, {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify(row)
+        });
+        if (!res.ok) { throw new Error('Status ' + res.status); }
+        fileInput.value = '';
+        showMsg('Dukaan save ho gayi', false);
+      } catch (e) {
+        showMsg('Dukaan save nahi hui. Dobara try karo.', true);
+      }
+      loadShopPhoto();
       loadItems();
+    }
+
+    // Dukaan ki photo Supabase se laakar banner mein dikhao
+    async function loadShopPhoto() {
+      var img = document.getElementById('bannerPhoto');
+      var emoji = document.getElementById('bannerEmoji');
+      img.style.display = 'none';
+      emoji.style.display = 'flex';
+      if (shopName === '') { return; }
+      try {
+        var url = SHOPS_URL + '?shop_name=eq.' + encodeURIComponent(shopName) + '&select=image_url';
+        var res = await fetch(url, { headers: makeHeaders() });
+        if (!res.ok) { return; }
+        var rows = await res.json();
+        if (rows.length > 0 && rows[0].image_url && rows[0].image_url.indexOf(PHOTO_PUBLIC_URL) === 0) {
+          img.src = rows[0].image_url;
+          img.style.display = 'block';
+          emoji.style.display = 'none';
+        }
+      } catch (e) {}
     }
 
     // Photo ko chhota karo (500 px tak) taaki data aur jagah bache
@@ -287,6 +337,7 @@
     document.getElementById('shopName').value = shopName;
     document.getElementById('bannerName').textContent = shopName || 'Dukaan ka naam likho';
     loadItems();
+    loadShopPhoto();
   </script>
 
 </body>
