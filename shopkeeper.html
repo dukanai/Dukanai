@@ -13,7 +13,7 @@
     .box { background: white; margin: 14px 12px; padding: 14px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
     .box h3 { margin: 0 0 10px; }
     label { font-size: 14px; font-weight: bold; }
-    input { display: block; width: 100%; padding: 12px; margin: 6px 0 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; }
+    input, select { display: block; width: 100%; padding: 12px; margin: 6px 0 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; background: white; color: #1a1a4b; }
     input[type=file] { font-size: 14px; background: #fafafa; }
     .btn { display: block; width: 100%; padding: 13px; border: none; border-radius: 28px; background: #f57c00; color: white; font-size: 16px; font-weight: bold; }
     .btn:disabled { background: #ccc; }
@@ -26,7 +26,8 @@
     .item:last-child { border-bottom: none; }
     .item .left { display: flex; align-items: center; gap: 10px; }
     .item .right { display: flex; align-items: center; gap: 10px; }
-    .thumb { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    .item .sub { font-size: 12px; color: #666; margin-top: 2px; }
+    .thumb { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
     .del { background: #ffebee; color: #c62828; border: none; border-radius: 16px; padding: 6px 12px; font-size: 13px; }
     #msg { margin: 10px 12px; padding: 10px; border-radius: 10px; font-size: 14px; text-align: center; display: none; }
     .note { font-size: 12px; color: #666; text-align: center; margin: 10px 12px 24px; }
@@ -62,10 +63,32 @@
 
   <div class="box">
     <h3>Naya item jodo</h3>
+
+    <label>Category</label>
+    <select id="itemCategory">
+      <option value="">Category chuno</option>
+      <option value="Atta, Chawal aur Dal">🌾 Atta, Chawal aur Dal</option>
+      <option value="Tel aur Ghee">🛢️ Tel aur Ghee</option>
+      <option value="Doodh aur Dairy">🥛 Doodh aur Dairy</option>
+      <option value="Masale">🌶️ Masale</option>
+      <option value="Chai, Cheeni aur Namak">☕ Chai, Cheeni aur Namak</option>
+      <option value="Biscuit aur Snacks">🍪 Biscuit aur Snacks</option>
+      <option value="Pooja ka saman">🪔 Pooja ka saman</option>
+      <option value="Anya">📦 Anya</option>
+    </select>
+
     <label>Item ka naam</label>
-    <input id="itemName" type="text" placeholder="Jaise: Atta 5kg">
+    <input id="itemName" type="text" placeholder="Jaise: Atta">
+
+    <label>Brand</label>
+    <input id="itemBrand" type="text" placeholder="Jaise: Aashirvaad">
+
+    <label>Pack (kitna saman)</label>
+    <input id="itemPack" type="text" placeholder="Jaise: 5 kg">
+
     <label>Price (₹)</label>
     <input id="itemPrice" type="number" placeholder="Jaise: 220">
+
     <label>Item ki photo (zaruri nahi)</label>
     <input id="itemPhoto" type="file" accept="image/*">
     <button id="addBtn" class="btn" onclick="addItem()">+ Item Add karo</button>
@@ -206,7 +229,7 @@
       list.textContent = 'Load ho raha hai...';
       try {
         var url = TABLE_URL + '?shop_name=eq.' + encodeURIComponent(shopName) +
-                  '&select=id,item_name,price,image_url&order=created_at.asc';
+                  '&select=id,item_name,price,image_url,category,brand,pack&order=created_at.asc';
         var res = await fetch(url, { headers: makeHeaders() });
         if (!res.ok) { throw new Error('Status ' + res.status); }
         var items = await res.json();
@@ -218,13 +241,20 @@
     }
 
     async function addItem() {
+      var cat = document.getElementById('itemCategory').value;
       var n = document.getElementById('itemName').value.trim();
+      var b = document.getElementById('itemBrand').value.trim();
+      var pk = document.getElementById('itemPack').value.trim();
       var p = document.getElementById('itemPrice').value.trim();
       var fileInput = document.getElementById('itemPhoto');
       var btn = document.getElementById('addBtn');
 
       if (shopName === '') {
         showMsg('Pehle dukaan ka naam save karo', true);
+        return;
+      }
+      if (cat === '') {
+        showMsg('Pehle category chuno', true);
         return;
       }
       if (n === '' || p === '') {
@@ -246,7 +276,10 @@
           headers: makeHeaders(),
           body: JSON.stringify({
             shop_name: shopName,
+            category: cat,
             item_name: n,
+            brand: b === '' ? null : b,
+            pack: pk === '' ? null : pk,
             price: Number(p),
             image_url: imageUrl
           })
@@ -254,6 +287,8 @@
         if (!res.ok) { throw new Error('Status ' + res.status); }
 
         document.getElementById('itemName').value = '';
+        document.getElementById('itemBrand').value = '';
+        document.getElementById('itemPack').value = '';
         document.getElementById('itemPrice').value = '';
         fileInput.value = '';
         showMsg('Item add ho gaya', false);
@@ -308,11 +343,22 @@
           thumb.textContent = '📦';
         }
 
-        var nameSpan = document.createElement('span');
+        // Naam, aur uske neeche brand, pack, category
+        var textBox = document.createElement('div');
+        var nameSpan = document.createElement('div');
         nameSpan.textContent = item.item_name;
+        var subSpan = document.createElement('div');
+        subSpan.className = 'sub';
+        var parts = [];
+        if (item.brand) { parts.push(item.brand); }
+        if (item.pack) { parts.push(item.pack); }
+        if (item.category) { parts.push(item.category); }
+        subSpan.textContent = parts.join(' · ');
+        textBox.appendChild(nameSpan);
+        textBox.appendChild(subSpan);
 
         left.appendChild(thumb);
-        left.appendChild(nameSpan);
+        left.appendChild(textBox);
 
         var right = document.createElement('div');
         right.className = 'right';
