@@ -22,6 +22,7 @@
     .item:last-child { border-bottom: none; }
     .item .right { display: flex; align-items: center; gap: 10px; }
     .del { background: #ffebee; color: #c62828; border: none; border-radius: 16px; padding: 6px 12px; font-size: 13px; }
+    #msg { margin: 10px 12px; padding: 10px; border-radius: 10px; font-size: 14px; text-align: center; display: none; }
     .note { font-size: 12px; color: #666; text-align: center; margin: 10px 12px 24px; }
   </style>
 </head>
@@ -32,20 +33,19 @@
     <div class="title">Dukandaar Panel</div>
   </div>
 
-  <!-- Banner: yahan dukaan ka naam dikhega -->
   <div class="banner">
     <div class="small">Aapki dukaan</div>
     <div class="name" id="bannerName">Dukaan ka naam likho</div>
   </div>
 
-  <!-- Dukaan ka naam -->
+  <div id="msg"></div>
+
   <div class="box">
     <label>Dukaan ka naam</label>
     <input id="shopName" type="text" placeholder="Jaise: Sharma Kirana Store">
     <button class="btn" onclick="saveShop()">Naam save karo</button>
   </div>
 
-  <!-- Item jodo -->
   <div class="box">
     <h3>Naya item jodo</h3>
     <label>Item ka naam</label>
@@ -55,84 +55,143 @@
     <button class="btn" onclick="addItem()">+ Item Add karo</button>
   </div>
 
-  <!-- Items ki list -->
   <div class="box">
     <h3>Aapke items</h3>
     <div id="list"></div>
   </div>
 
-  <div class="note">Abhi ye items sirf is phone mein save hote hain. Customer ko dikhane ke liye baad mein database jodenge.</div>
+  <div class="note">Items ab online database mein save hote hain.</div>
 
   <script>
-    // Phone mein data save/load karne ke functions
-    function loadData() {
-      try {
-        var d = localStorage.getItem('dukaanai_shop');
-        if (d) { return JSON.parse(d); }
-      } catch (e) {}
-      return { name: '', items: [] };
+    // Supabase ki jaankari (publishable key website ke code mein rakhna safe hai)
+    var SUPABASE_URL = 'https://fbfubeqrnrjyhzbunwif.supabase.co';
+    var SUPABASE_KEY = 'sb_publishable_T4K1yk-9-TA5nz62K8RFnw_7KzciLCt';
+    var TABLE_URL = SUPABASE_URL + '/rest/v1/shop_items';
+
+    var shopName = '';
+
+    // Supabase ko bhejne wale headers
+    function makeHeaders() {
+      return { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' };
     }
 
-    function saveData() {
-      try {
-        localStorage.setItem('dukaanai_shop', JSON.stringify(shop));
-      } catch (e) {}
+    // Chhota sa message dikhao (jaise error ya success)
+    function showMsg(text, isError) {
+      var m = document.getElementById('msg');
+      m.textContent = text;
+      m.style.background = isError ? '#ffebee' : '#e8f5e9';
+      m.style.color = isError ? '#c62828' : '#2e7d32';
+      m.style.display = 'block';
+      setTimeout(function () { m.style.display = 'none'; }, 4000);
     }
 
-    var shop = loadData();
+    // Phone mein se dukaan ka naam padho (purane version ka naam bhi dekho)
+    function loadShopName() {
+      try {
+        var n = localStorage.getItem('dukaanai_shop_name');
+        if (n) { return n; }
+        var old = localStorage.getItem('dukaanai_shop');
+        if (old) {
+          var o = JSON.parse(old);
+          if (o && o.name) { return o.name; }
+        }
+      } catch (e) {}
+      return '';
+    }
 
     // Dukaan ka naam save karo
     function saveShop() {
       var n = document.getElementById('shopName').value.trim();
       if (n === '') {
-        alert('Pehle dukaan ka naam likho');
+        showMsg('Pehle dukaan ka naam likho', true);
         return;
       }
-      shop.name = n;
-      saveData();
-      render();
+      shopName = n;
+      try { localStorage.setItem('dukaanai_shop_name', n); } catch (e) {}
+      document.getElementById('bannerName').textContent = n;
+      showMsg('Naam save ho gaya', false);
+      loadItems();
     }
 
-    // Item add karo
-    function addItem() {
-      var n = document.getElementById('itemName').value.trim();
-      var p = document.getElementById('itemPrice').value.trim();
-      if (n === '' || p === '') {
-        alert('Item ka naam aur price dono likho');
+    // Database se is dukaan ke items mangao
+    async function loadItems() {
+      var list = document.getElementById('list');
+      if (shopName === '') {
+        list.textContent = 'Pehle dukaan ka naam save karo.';
         return;
       }
-      shop.items.push({ name: n, price: p });
-      saveData();
-      document.getElementById('itemName').value = '';
-      document.getElementById('itemPrice').value = '';
-      render();
+      list.textContent = 'Load ho raha hai...';
+      try {
+        var url = TABLE_URL + '?shop_name=eq.' + encodeURIComponent(shopName) +
+                  '&select=id,item_name,price&order=created_at.asc';
+        var res = await fetch(url, { headers: makeHeaders() });
+        if (!res.ok) { throw new Error('Status ' + res.status); }
+        var items = await res.json();
+        render(items);
+      } catch (e) {
+        list.textContent = '';
+        showMsg('Items load nahi hue. Internet check karo.', true);
+      }
+    }
+
+    // Naya item database mein daalo
+    async function addItem() {
+      var n = document.getElementById('itemName').value.trim();
+      var p = document.getElementById('itemPrice').value.trim();
+      if (shopName === '') {
+        showMsg('Pehle dukaan ka naam save karo', true);
+        return;
+      }
+      if (n === '' || p === '') {
+        showMsg('Item ka naam aur price dono likho', true);
+        return;
+      }
+      try {
+        var res = await fetch(TABLE_URL, {
+          method: 'POST',
+          headers: makeHeaders(),
+          body: JSON.stringify({ shop_name: shopName, item_name: n, price: Number(p) })
+        });
+        if (!res.ok) { throw new Error('Status ' + res.status); }
+        document.getElementById('itemName').value = '';
+        document.getElementById('itemPrice').value = '';
+        showMsg('Item add ho gaya', false);
+        loadItems();
+      } catch (e) {
+        showMsg('Item add nahi hua. Dobara try karo.', true);
+      }
     }
 
     // Item hatao
-    function removeItem(index) {
-      shop.items.splice(index, 1);
-      saveData();
-      render();
+    async function removeItem(id) {
+      try {
+        var res = await fetch(TABLE_URL + '?id=eq.' + id, {
+          method: 'DELETE',
+          headers: makeHeaders()
+        });
+        if (!res.ok) { throw new Error('Status ' + res.status); }
+        loadItems();
+      } catch (e) {
+        showMsg('Item hata nahi paya. Dobara try karo.', true);
+      }
     }
 
-    // Screen par sab dikhao
-    function render() {
-      document.getElementById('bannerName').textContent = shop.name || 'Dukaan ka naam likho';
-
+    // Screen par items dikhao
+    function render(items) {
       var list = document.getElementById('list');
       list.innerHTML = '';
 
-      if (shop.items.length === 0) {
+      if (items.length === 0) {
         list.textContent = 'Abhi koi item nahi hai.';
         return;
       }
 
-      shop.items.forEach(function (item, index) {
+      items.forEach(function (item) {
         var row = document.createElement('div');
         row.className = 'item';
 
         var nameSpan = document.createElement('span');
-        nameSpan.textContent = item.name;
+        nameSpan.textContent = item.item_name;
 
         var right = document.createElement('div');
         right.className = 'right';
@@ -143,7 +202,7 @@
         var delBtn = document.createElement('button');
         delBtn.className = 'del';
         delBtn.textContent = 'Hatao';
-        delBtn.onclick = function () { removeItem(index); };
+        delBtn.onclick = function () { removeItem(item.id); };
 
         right.appendChild(priceSpan);
         right.appendChild(delBtn);
@@ -153,9 +212,11 @@
       });
     }
 
-    // Page khulte hi purana naam aur items dikhao
-    document.getElementById('shopName').value = shop.name;
-    render();
+    // Page khulte hi naam aur items dikhao
+    shopName = loadShopName();
+    document.getElementById('shopName').value = shopName;
+    document.getElementById('bannerName').textContent = shopName || 'Dukaan ka naam likho';
+    loadItems();
   </script>
 
 </body>
