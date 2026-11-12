@@ -264,4 +264,43 @@ api('orders',{method:'POST',body:JSON.stringify({shop_name:SHOP,customer_name:cn
 })();
 </script>
 </body>
+  <script>
+/* ===== Inventory: kharid price + profit ===== */
+(function(){
+var U='https://fbfubeqrnrjyhzbunwif.supabase.co/rest/v1/',K='sb_publishable_T4K1yk-9-TA5nz62K8RFnw_7KzciLCt';
+var BUY={},enc=encodeURIComponent;
+function shop(){try{return localStorage.getItem('dk_shop')||''}catch(e){return ''}}
+function api(p,o){o=o||{};o.headers={apikey:K,'Content-Type':'application/json',Prefer:'return=representation'};
+return fetch(U+p,o).then(function(r){return r.json()}).catch(function(){return {}})}
+function loadBuy(){var s=shop();if(!s)return Promise.resolve();
+return api('shop_items?shop_name=eq.'+enc(s)+'&select=item_name,buy_price').then(function(r){if(!Array.isArray(r))return;BUY={};r.forEach(function(x){BUY[x.item_name]=x.buy_price||0});draw()})}
+/* naya kharid price wala box */
+var ib=document.createElement('input');ib.id='ib';ib.type='number';ib.inputMode='decimal';ib.placeholder='Kharid price ₹ (sirf aapko dikhega)';
+$('ip').parentNode.insertBefore(ib,$('ip'));
+$('ip').placeholder='Bechne ka price ₹ (customer ko dikhega)';
+$('iq').placeholder='Kitna stock hai';
+var sm=document.createElement('div');sm.className='warn';sm.style.margin='8px 0';
+$('il').parentNode.insertBefore(sm,$('il'));
+/* inventory list dikhana */
+function showInv(){var h='',tm=0,tp=0;
+INV.forEach(function(f,i){var b=BUY[f.n]||0,pr=f.p-b,pc=b>0?Math.round(pr/b*1000)/10:0,m=b*f.q;tm+=m;if(b>0)tp+=pr*f.q;
+h+='<div class="xr"><span><b>'+esc(f.n)+'</b><br><small>Kharid ₹'+b+' • Bechna ₹'+f.p+'</small><br><small>'+(b>0?'Profit ₹'+pr+' ('+pc+'%) har piece par':'Kharid price daaliye')+'</small><br><small>Bacha maal: '+f.q+' • Maal mein paisa: '+fm(m)+'</small></span><b class="'+(f.q>0?'ok':'no')+'">'+(f.q>0?'Hai':'Khatam')+'</b><i data-i="'+i+'">✕</i></div>'});
+$('il').innerHTML=h;
+sm.innerHTML='Maal mein kul paisa: <b>'+fm(tm)+'</b><br>Sab bik gaya to kul profit: <b>'+fm(tp)+'</b>'}
+var _d3=draw;draw=function(){_d3();showInv()};
+/* save button */
+$('iadd').onclick=function(){var s=shop();if(!s){alert('Pehle dukaan chuniye');return}
+var n=$('inn').value.trim(),b=parseFloat($('ib').value),p=parseFloat($('ip').value),q=parseInt($('iq').value,10);
+if(!n||!(b>=0)||!(p>=0)||!(q>=0)){alert('Naam, dono price aur stock sahi daliye');return}
+if(p<b&&!confirm('Bechne ka price kharid se kam hai, nuksan hoga. Phir bhi save karein?'))return;
+var req=find(n)?api('shop_items?shop_name=eq.'+enc(s)+'&item_name=eq.'+enc(n),{method:'PATCH',body:JSON.stringify({price:p,stock:q,buy_price:b})}):api('shop_items',{method:'POST',body:JSON.stringify({shop_name:s,item_name:n,price:p,stock:q,buy_price:b})});
+req.then(function(r){if(r&&r.message){alert('Error: '+r.message);return}
+['inn','ib','ip','iq'].forEach(function(k){$(k).value=''});
+BUY[n]=b;var sel=document.querySelector('.on select');if(sel&&sel.onchange)sel.onchange()})};
+/* dukaan badalne par kharid price bhi laao */
+var sel=document.querySelector('.on select');
+if(sel){var oc=sel.onchange;sel.onchange=function(){if(oc)oc.call(sel);setTimeout(loadBuy,400)}}
+loadBuy();
+})();
+  </script>
 </html>
